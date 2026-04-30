@@ -42,34 +42,48 @@
 
     @push('scripts')
     <script>
-    document.getElementById('rec-btn').addEventListener('click', async () => {
-        const r = await fetch('/api/ai/recommend', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ query: document.getElementById('rec-query').value })
-        });
-        const j = await r.json();
-        document.getElementById('rec-result').textContent = JSON.stringify(j.raw || j, null, 2);
+    const csrf = @json(csrf_token());
+
+    async function callAi(url, payload, targetId) {
+        const target = document.getElementById(targetId);
+        target.textContent = 'Loading...';
+
+        try {
+            const r = await fetch(url, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrf,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const j = await r.json().catch(() => ({}));
+
+            if (!r.ok || j.success === false) {
+                target.textContent = j.error || `Request failed (${r.status})`;
+                return;
+            }
+
+            target.textContent = j.content || JSON.stringify(j.raw || j, null, 2);
+        } catch (error) {
+            target.textContent = error.message;
+        }
+    }
+
+    document.getElementById('rec-btn').addEventListener('click', () => {
+        callAi('/api/ai/recommend', { query: document.getElementById('rec-query').value }, 'rec-result');
     });
 
-    document.getElementById('sum-btn').addEventListener('click', async () => {
-        const r = await fetch('/api/ai/summarize', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ text: document.getElementById('sum-text').value })
-        });
-        const j = await r.json();
-        document.getElementById('sum-result').textContent = j.content || JSON.stringify(j.raw || j, null, 2);
+    document.getElementById('sum-btn').addEventListener('click', () => {
+        callAi('/api/ai/summarize', { text: document.getElementById('sum-text').value }, 'sum-result');
     });
 
-    document.getElementById('chat-btn').addEventListener('click', async () => {
-        const r = await fetch('/api/ai/chat', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ message: document.getElementById('chat-msg').value })
-        });
-        const j = await r.json();
-        document.getElementById('chat-result').textContent = j.content || JSON.stringify(j.raw || j, null, 2);
+    document.getElementById('chat-btn').addEventListener('click', () => {
+        callAi('/api/ai/chat', { message: document.getElementById('chat-msg').value }, 'chat-result');
     });
     </script>
     @endpush

@@ -49,8 +49,8 @@ Route::middleware('auth:web')->group(function () {
     Route::delete('loans/{id}', [LoanController::class, 'destroy']);
 });
 
-// AI endpoints (require session auth)
-Route::middleware('auth:web')->group(function () {
+// AI endpoints (require session auth + web middleware for session/CSRF)
+Route::middleware(['web', 'auth:web'])->group(function () {
     Route::post('ai/recommend', [AiController::class, 'recommend']);
     Route::post('ai/summarize', [AiController::class, 'summarize']);
     Route::post('ai/chat', [AiController::class, 'chat']);

@@ -14,6 +14,10 @@
                     <div class="font-semibold text-lg">Manage Books</div>
                     <div class="text-sm text-gray-500">Tambah, hapus, dan update stok.</div>
                 </a>
+                <a href="{{ route('admin.categories') }}" class="bg-white shadow-sm sm:rounded-lg p-6 hover:bg-gray-50">
+                    <div class="font-semibold text-lg">Manage Categories</div>
+                    <div class="text-sm text-gray-500">Kelola master data kategori buku.</div>
+                </a>
                 <a href="{{ route('admin.loans') }}" class="bg-white shadow-sm sm:rounded-lg p-6 hover:bg-gray-50">
                     <div class="font-semibold text-lg">Monitor Loans</div>
                     <div class="text-sm text-gray-500">Lihat semua peminjaman dan kembalikan buku.</div>

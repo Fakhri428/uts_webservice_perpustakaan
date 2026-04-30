@@ -16,6 +16,7 @@ class Book extends Model
         'category',
         'published_year',
         'isbn',
+        'image',
         'stock',
     ];
 

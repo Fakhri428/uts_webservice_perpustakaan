@@ -1,4 +1,10 @@
 <nav x-data="{ open: false }" class="bg-white border-b border-gray-100">
+    @php
+        $isAdmin = Auth::check() && Auth::user()->role === 'admin';
+        $booksRoute = $isAdmin ? route('admin.books') : route('user.books');
+        $loansRoute = $isAdmin ? route('admin.loans') : route('user.loans');
+        $aiRoute = $isAdmin ? route('admin.ai') : route('user.ai');
+    @endphp
     <!-- Primary Navigation Menu -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
@@ -15,13 +21,13 @@
                     <x-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
-                    <x-nav-link href="{{ route('app.books') }}" :active="request()->routeIs('app.books')">
+                    <x-nav-link href="{{ $booksRoute }}" :active="request()->routeIs('admin.books') || request()->routeIs('user.books') || request()->routeIs('app.books')">
                         {{ __('Books') }}
                     </x-nav-link>
-                    <x-nav-link href="{{ route('app.loans') }}" :active="request()->routeIs('app.loans')">
+                    <x-nav-link href="{{ $loansRoute }}" :active="request()->routeIs('admin.loans') || request()->routeIs('user.loans') || request()->routeIs('app.loans')">
                         {{ __('Loans') }}
                     </x-nav-link>
-                    <x-nav-link href="{{ route('app.ai') }}" :active="request()->routeIs('app.ai')">
+                    <x-nav-link href="{{ $aiRoute }}" :active="request()->routeIs('admin.ai') || request()->routeIs('user.ai') || request()->routeIs('app.ai')">
                         {{ __('AI') }}
                     </x-nav-link>
                 </div>
@@ -158,6 +164,15 @@
             <x-responsive-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
+                        <x-responsive-nav-link href="{{ $booksRoute }}" :active="request()->routeIs('admin.books') || request()->routeIs('user.books') || request()->routeIs('app.books')">
+                            {{ __('Books') }}
+                        </x-responsive-nav-link>
+                        <x-responsive-nav-link href="{{ $loansRoute }}" :active="request()->routeIs('admin.loans') || request()->routeIs('user.loans') || request()->routeIs('app.loans')">
+                            {{ __('Loans') }}
+                        </x-responsive-nav-link>
+                        <x-responsive-nav-link href="{{ $aiRoute }}" :active="request()->routeIs('admin.ai') || request()->routeIs('user.ai') || request()->routeIs('app.ai')">
+                            {{ __('AI') }}
+                        </x-responsive-nav-link>
         </div>
 
         <!-- Responsive Settings Options -->

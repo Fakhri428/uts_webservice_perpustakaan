@@ -3,13 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Middleware\EnsureUserRole;
 use App\Models\Book;
 use App\Services\GroqService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class BookController extends Controller
 {
@@ -18,12 +16,6 @@ class BookController extends Controller
     public function __construct(GroqService $groq)
     {
         $this->groq = $groq;
-
-        // require auth for mutating actions, allow public index/show/recommend
-        $this->middleware('auth:sanctum')->except(['index','show','recommend']);
-
-        // only admin can create/update/delete books
-        $this->middleware(EnsureUserRole::class . ':admin')->only(['store','update','destroy']);
     }
 
     public function index(Request $request)
@@ -35,6 +27,10 @@ class BookController extends Controller
     {
         $data = $request->only(['title','author','description','category','published_year','isbn','stock']);
 
+        if ($request->hasFile('image')) {
+            $data['image'] = $request->file('image')->store('books', 'public');
+        }
+
         $validator = Validator::make($data, [
             'title' => 'required|string|max:255',
             'author' => 'nullable|string|max:255',
@@ -42,6 +38,7 @@ class BookController extends Controller
             'category' => 'nullable|string|max:255',
             'published_year' => 'nullable|integer',
             'isbn' => 'nullable|string|max:100',
+            'image' => 'nullable|string|max:255',
             'stock' => 'nullable|integer',
         ]);
 
@@ -66,9 +63,26 @@ class BookController extends Controller
 
         $data = $request->only(['title','author','description','category','published_year','isbn','stock']);
 
+        if ($request->hasFile('image')) {
+            if ($book->image) {
+                Storage::disk('public')->delete($book->image);
+            }
+
+            $data['image'] = $request->file('image')->store('books', 'public');
+        }
+
         $book->update($data);
 
         return response()->json($book);
+    }
+
+    protected function bookImageUrl(?string $path): ?string
+    {
+        if (! $path) {
+            return null;
+        }
+
+        return Storage::url($path);
     }
 
     public function destroy($id)

@@ -8,6 +8,6 @@ class UserDashboardController extends Controller
 {
     public function index(Request $request)
     {
-        return view('user-dashboard');
+        return view('user.dashboard');
     }
 }

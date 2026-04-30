@@ -4,6 +4,7 @@ use App\Services\GroqService;
 use App\Http\Controllers\Api\BookController;
 use App\Http\Controllers\Api\LoanController;
 use App\Http\Controllers\Api\AiController;
+use App\Http\Middleware\EnsureUserRole;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -19,13 +20,23 @@ Route::get('/groq/test', function () {
     return response()->json($result);
 });
 
-// Book CRUD - index/show/recommend public, mutating actions require auth+admin (handled in controller)
+// Book CRUD - public read, admin-only write
+Route::get('books', [BookController::class, 'index']);
+Route::get('books/{id}', [BookController::class, 'show']);
 Route::get('books/recommend', [BookController::class, 'recommend']);
-Route::apiResource('books', BookController::class);
+Route::middleware(['auth:sanctum', EnsureUserRole::class . ':admin'])->group(function () {
+    Route::post('books', [BookController::class, 'store']);
+    Route::put('books/{id}', [BookController::class, 'update']);
+    Route::delete('books/{id}', [BookController::class, 'destroy']);
+});
 
 // Loans (peminjaman) - require auth for loan actions
 Route::middleware('auth:sanctum')->group(function () {
-    Route::apiResource('loans', LoanController::class);
+    Route::get('loans', [LoanController::class, 'index']);
+    Route::post('loans', [LoanController::class, 'store']);
+    Route::get('loans/{id}', [LoanController::class, 'show']);
+    Route::put('loans/{id}', [LoanController::class, 'update']);
+    Route::delete('loans/{id}', [LoanController::class, 'destroy']);
 });
 
 // AI endpoints (require auth)

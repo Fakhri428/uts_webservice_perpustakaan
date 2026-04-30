@@ -24,6 +24,11 @@
                     <x-nav-link href="{{ $booksRoute }}" :active="request()->routeIs('admin.books') || request()->routeIs('user.books') || request()->routeIs('app.books')">
                         {{ __('Books') }}
                     </x-nav-link>
+                    @if ($isAdmin)
+                        <x-nav-link href="{{ route('admin.categories') }}" :active="request()->routeIs('admin.categories') || request()->routeIs('app.categories')">
+                            {{ __('Categories') }}
+                        </x-nav-link>
+                    @endif
                     <x-nav-link href="{{ $loansRoute }}" :active="request()->routeIs('admin.loans') || request()->routeIs('user.loans') || request()->routeIs('app.loans')">
                         {{ __('Loans') }}
                     </x-nav-link>
@@ -167,6 +172,11 @@
                         <x-responsive-nav-link href="{{ $booksRoute }}" :active="request()->routeIs('admin.books') || request()->routeIs('user.books') || request()->routeIs('app.books')">
                             {{ __('Books') }}
                         </x-responsive-nav-link>
+                        @if ($isAdmin)
+                            <x-responsive-nav-link href="{{ route('admin.categories') }}" :active="request()->routeIs('admin.categories') || request()->routeIs('app.categories')">
+                                {{ __('Categories') }}
+                            </x-responsive-nav-link>
+                        @endif
                         <x-responsive-nav-link href="{{ $loansRoute }}" :active="request()->routeIs('admin.loans') || request()->routeIs('user.loans') || request()->routeIs('app.loans')">
                             {{ __('Loans') }}
                         </x-responsive-nav-link>

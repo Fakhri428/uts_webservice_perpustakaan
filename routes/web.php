@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Book;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\UserDashboardController;
@@ -33,6 +34,10 @@ Route::middleware([
         ->middleware(EnsureUserRole::class . ':admin')
         ->name('admin.books');
 
+    Route::get('/admin/categories', function () { return view('admin.categories'); })
+        ->middleware(EnsureUserRole::class . ':admin')
+        ->name('admin.categories');
+
     Route::get('/admin/loans', function () { return view('admin.loans'); })
         ->middleware(EnsureUserRole::class . ':admin')
         ->name('admin.loans');
@@ -45,7 +50,15 @@ Route::middleware([
         ->middleware(EnsureUserRole::class . ':user')
         ->name('user.dashboard');
 
-    Route::get('/user/books', function () { return view('user.books'); })
+    Route::get('/user/books', function () {
+        $books = Book::select('id', 'title', 'author', 'category', 'published_year', 'isbn', 'stock', 'image', 'description')
+            ->orderByDesc('id')
+            ->get();
+
+        return view('user.books', [
+            'books' => $books,
+        ]);
+    })
         ->middleware(EnsureUserRole::class . ':user')
         ->name('user.books');
 
@@ -61,6 +74,10 @@ Route::middleware([
     Route::get('/app/books', function () {
         return redirect()->route(auth()->user()?->role === 'admin' ? 'admin.books' : 'user.books');
     })->name('app.books');
+
+    Route::get('/app/categories', function () {
+        return redirect()->route('admin.categories');
+    })->name('app.categories');
 
     Route::get('/app/loans', function () {
         return redirect()->route(auth()->user()?->role === 'admin' ? 'admin.loans' : 'user.loans');

@@ -2,6 +2,7 @@
 
 use App\Services\GroqService;
 use App\Http\Controllers\Api\BookController;
+use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\LoanController;
 use App\Http\Controllers\Api\AiController;
 use App\Http\Middleware\EnsureUserRole;
@@ -28,6 +29,15 @@ Route::middleware(['auth:web', EnsureUserRole::class . ':admin'])->group(functio
     Route::post('books', [BookController::class, 'store']);
     Route::put('books/{id}', [BookController::class, 'update']);
     Route::delete('books/{id}', [BookController::class, 'destroy']);
+});
+
+// Category CRUD - public read, admin-only write
+Route::get('categories', [CategoryController::class, 'index']);
+Route::get('categories/{id}', [CategoryController::class, 'show']);
+Route::middleware(['auth:web', EnsureUserRole::class . ':admin'])->group(function () {
+    Route::post('categories', [CategoryController::class, 'store']);
+    Route::put('categories/{id}', [CategoryController::class, 'update']);
+    Route::delete('categories/{id}', [CategoryController::class, 'destroy']);
 });
 
 // Loans (peminjaman) - require session auth for loan actions

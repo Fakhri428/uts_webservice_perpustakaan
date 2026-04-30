@@ -1,0 +1,463 @@
+{
+  "info": {
+    "_postman_id": "54806a43-8333-4b9d-aa0d-c2de5725f5f5",
+    "name": "UTS Web Service API",
+    "description": "# UTS Web Service API\nDokumentasi Postman untuk project Laravel Web Service.\n\n## Base URL\n- Web: `{{base_url}}`\n- API: `{{api_url}}`\n\n## Authentication\nProject ini menggunakan Laravel session + CSRF untuk login web, bukan JWT. Setelah login, gunakan cookie session yang sama untuk request API yang memerlukan autentikasi.\n\n## Catatan\n- Request public: books read, categories read, Groq test.\n- Request protected: login session, loans, AI, create/update/delete books, create/update/delete categories.\n- Gunakan `Save as Example` di Postman untuk menyimpan contoh response sukses dan error.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://127.0.0.1:8000" },
+    { "key": "api_url", "value": "{{base_url}}/api" },
+    { "key": "csrf_token", "value": "" },
+    { "key": "book_id", "value": "1" },
+    { "key": "loan_id", "value": "1" }
+  ],
+  "item": [
+    {
+      "name": "01 Authentication",
+      "description": "## Folder Authentication\n`STATUS: PRODUCTION` untuk login web berbasis session.\n\nGunakan endpoint ini untuk mendapatkan cookie session sebelum akses ke endpoint protected.",
+      "item": [
+        {
+          "name": "Get Login Page",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "text/html" }],
+            "url": "{{base_url}}/login"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "html",
+              "header": [{ "key": "Content-Type", "value": "text/html; charset=utf-8" }],
+              "body": "<html>\n  <head>\n    <title>Laravel</title>\n    <meta name=\"csrf-token\" content=\"...\">\n  </head>\n  <body>Login page</body>\n</html>"
+            }
+          ]
+        },
+        {
+          "name": "Login Session",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/x-www-form-urlencoded" },
+              { "key": "Accept", "value": "text/html,application/json" }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "email", "value": "admin@gmail.com", "type": "text" },
+                { "key": "password", "value": "password", "type": "text" },
+                { "key": "_token", "value": "{{csrf_token}}", "type": "text" }
+              ]
+            },
+            "url": "{{base_url}}/login"
+          },
+          "response": [
+            {
+              "name": "302 Redirect",
+              "status": "Found",
+              "code": 302,
+              "_postman_previewlanguage": "html",
+              "header": [{ "key": "Location", "value": "{{base_url}}/dashboard" }],
+              "body": "<html>\n  <head>\n    <meta http-equiv=\"refresh\" content=\"0;url='{{base_url}}/dashboard'\" />\n  </head>\n  <body>Redirecting to dashboard</body>\n</html>"
+            },
+            {
+              "name": "419 CSRF Error",
+              "status": "Page Expired",
+              "code": 419,
+              "_postman_previewlanguage": "html",
+              "body": "<html>\n  <head><title>Page Expired</title></head>\n  <body>CSRF token mismatch</body>\n</html>"
+            },
+            {
+              "name": "422 Invalid Credentials",
+              "status": "Unprocessable Entity",
+              "code": 422,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"message\": \"These credentials do not match our records.\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/x-www-form-urlencoded" },
+              { "key": "Accept", "value": "text/html,application/json" }
+            ],
+            "body": { "mode": "urlencoded", "urlencoded": [{ "key": "_token", "value": "{{csrf_token}}", "type": "text" }] },
+            "url": "{{base_url}}/logout"
+          },
+          "response": [
+            {
+              "name": "302 Redirect",
+              "status": "Found",
+              "code": 302,
+              "_postman_previewlanguage": "html",
+              "header": [{ "key": "Location", "value": "{{base_url}}/login" }],
+              "body": "<html><body>Redirecting to login</body></html>"
+            }
+          ]
+        },
+        {
+          "name": "Get Authenticated User",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{api_url}}/user"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"id\": 1,\n  \"name\": \"Admin\",\n  \"email\": \"admin@gmail.com\",\n  \"role\": \"admin\"\n}"
+            },
+            {
+              "name": "401 Unauthorized",
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"message\": \"Unauthenticated.\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02 Books",
+      "description": "## Folder Books\n`STATUS: PRODUCTION`\n\nEndpoint buku publik untuk baca data, serta endpoint admin untuk create, update, dan delete.",
+      "item": [
+        {
+          "name": "Get All Books",
+          "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": "{{api_url}}/books" },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"current_page\": 1,\n  \"data\": [\n    {\n      \"id\": 1,\n      \"title\": \"Est eos quia est.\",\n      \"author\": \"Josefa Thiel\",\n      \"category\": \"Romance\",\n      \"published_year\": 1992,\n      \"isbn\": \"9794596121140\",\n      \"image\": null,\n      \"stock\": 26\n    }\n  ],\n  \"per_page\": 15,\n  \"total\": 100\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Book Detail",
+          "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": "{{api_url}}/books/:id" },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"id\": 1,\n  \"title\": \"Est eos quia est.\",\n  \"author\": \"Josefa Thiel\",\n  \"description\": \"Aperiam et perspiciatis consequuntur voluptas...\",\n  \"category\": \"Romance\",\n  \"published_year\": 1992,\n  \"isbn\": \"9794596121140\",\n  \"image\": null,\n  \"stock\": 26\n}"
+            },
+            {
+              "name": "404 Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"message\": \"No query results for model [App\\\\Models\\\\Book] 999999\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Book Recommendations",
+          "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": "{{api_url}}/books/recommend?query=Fiction" },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"content\": \"1. Est eos quia est. - romance yang ringan\\n2. Facere enim. - cocok untuk teknologi\",\n  \"usage\": {\n    \"total_tokens\": 215,\n    \"completion_time\": 0.15\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Create Book",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "title", "value": "Buku Baru", "type": "text" },
+                { "key": "author", "value": "Penulis Baru", "type": "text" },
+                { "key": "description", "value": "Deskripsi buku baru", "type": "text" },
+                { "key": "category", "value": "Fiction", "type": "text" },
+                { "key": "published_year", "value": "2026", "type": "text" },
+                { "key": "isbn", "value": "9781234567890", "type": "text" },
+                { "key": "stock", "value": "3", "type": "text" },
+                { "key": "image", "type": "file", "src": "" }
+              ]
+            },
+            "url": "{{api_url}}/books"
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"id\": 101,\n  \"title\": \"Buku Baru\",\n  \"author\": \"Penulis Baru\",\n  \"category\": \"Fiction\",\n  \"published_year\": 2026,\n  \"isbn\": \"9781234567890\",\n  \"stock\": 3\n}"
+            },
+            {
+              "name": "422 Validation Error",
+              "status": "Unprocessable Entity",
+              "code": 422,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"errors\": {\n    \"title\": [\"The title field is required.\"]\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update Book",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"Buku Baru Update\",\n  \"stock\": 5\n}" },
+            "url": "{{api_url}}/books/:id"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"id\": 1,\n  \"title\": \"Buku Baru Update\",\n  \"stock\": 5\n}"
+            }
+          ]
+        },
+        {
+          "name": "Delete Book",
+          "request": { "method": "DELETE", "header": [{ "key": "Accept", "value": "application/json" }], "url": "{{api_url}}/books/:id" },
+          "response": [
+            { "name": "200 OK", "status": "OK", "code": 200, "_postman_previewlanguage": "json", "body": "{\n  \"message\": \"Book deleted\"\n}" }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03 Categories",
+      "description": "## Folder Categories\n`STATUS: PRODUCTION`\n\nCRUD kategori untuk master data buku. Endpoint read bersifat public, sedangkan create/update/delete membutuhkan login admin.",
+      "item": [
+        {
+          "name": "Get All Categories",
+          "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": "{{api_url}}/categories" },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"current_page\": 1,\n  \"data\": [\n    {\n      \"id\": 1,\n      \"name\": \"Fiction\",\n      \"description\": \"Novel dan cerita fiksi\"\n    },\n    {\n      \"id\": 2,\n      \"name\": \"Technology\",\n      \"description\": \"Buku teknologi dan pemrograman\"\n    }\n  ],\n  \"per_page\": 15,\n  \"total\": 5\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Category Detail",
+          "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": "{{api_url}}/categories/:id" },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"id\": 1,\n  \"name\": \"Fiction\",\n  \"description\": \"Novel dan cerita fiksi\",\n  \"created_at\": \"2026-04-30T00:00:00.000000Z\",\n  \"updated_at\": \"2026-04-30T00:00:00.000000Z\"\n}"
+            },
+            {
+              "name": "404 Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"message\": \"No query results for model [App\\\\Models\\\\Category] 999999\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Create Category",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"History\",\n  \"description\": \"Buku sejarah dan catatan peristiwa\"\n}" },
+            "url": "{{api_url}}/categories"
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"id\": 6,\n  \"name\": \"History\",\n  \"description\": \"Buku sejarah dan catatan peristiwa\"\n}"
+            },
+            {
+              "name": "422 Validation Error",
+              "status": "Unprocessable Entity",
+              "code": 422,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"errors\": {\n    \"name\": [\"The name field is required.\"]\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update Category",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Science & Tech\",\n  \"description\": \"Kategori sains dan teknologi\"\n}" },
+            "url": "{{api_url}}/categories/:id"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"id\": 1,\n  \"name\": \"Science & Tech\",\n  \"description\": \"Kategori sains dan teknologi\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Delete Category",
+          "request": { "method": "DELETE", "header": [{ "key": "Accept", "value": "application/json" }], "url": "{{api_url}}/categories/:id" },
+          "response": [
+            { "name": "200 OK", "status": "OK", "code": 200, "_postman_previewlanguage": "json", "body": "{\n  \"message\": \"Category deleted\"\n}" }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04 Loans",
+      "description": "## Folder Loans\n`STATUS: PRODUCTION`\n\nEndpoint peminjaman. Request ini membutuhkan session login aktif. Admin melihat semua data, user hanya melihat miliknya sendiri.",
+      "item": [
+        {
+          "name": "Get Loans",
+          "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": "{{api_url}}/loans" },
+          "response": [
+            { "name": "200 OK", "status": "OK", "code": 200, "_postman_previewlanguage": "json", "body": "{\n  \"current_page\": 1,\n  \"data\": [],\n  \"per_page\": 15,\n  \"total\": 0\n}" },
+            { "name": "401 Unauthorized", "status": "Unauthorized", "code": 401, "_postman_previewlanguage": "json", "body": "{\n  \"message\": \"Unauthenticated\"\n}" }
+          ]
+        },
+        {
+          "name": "Create Loan",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"book_id\": 1,\n  \"borrowed_at\": \"2026-04-30\",\n  \"due_at\": \"2026-05-07\"\n}" },
+            "url": "{{api_url}}/loans"
+          },
+          "response": [
+            { "name": "201 Created", "status": "Created", "code": 201, "_postman_previewlanguage": "json", "body": "{\n  \"id\": 1,\n  \"book_id\": 1,\n  \"user_id\": 2,\n  \"borrowed_at\": \"2026-04-30\",\n  \"due_at\": \"2026-05-07\",\n  \"status\": \"borrowed\"\n}" },
+            { "name": "400 Out of Stock", "status": "Bad Request", "code": 400, "_postman_previewlanguage": "json", "body": "{\n  \"message\": \"Book out of stock\"\n}" },
+            { "name": "422 Validation Error", "status": "Unprocessable Entity", "code": 422, "_postman_previewlanguage": "json", "body": "{\n  \"errors\": {\n    \"book_id\": [\"The book id field is required.\"]\n  }\n}" }
+          ]
+        },
+        {
+          "name": "Get Loan Detail",
+          "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": "{{api_url}}/loans/:id" },
+          "response": [
+            { "name": "200 OK", "status": "OK", "code": 200, "_postman_previewlanguage": "json", "body": "{\n  \"id\": 1,\n  \"book_id\": 1,\n  \"user_id\": 2,\n  \"status\": \"borrowed\",\n  \"book\": {\n    \"id\": 1,\n    \"title\": \"Est eos quia est.\"\n  },\n  \"user\": {\n    \"id\": 2,\n    \"name\": \"Regular User\"\n  }\n}" },
+            { "name": "403 Unauthorized", "status": "Forbidden", "code": 403, "_postman_previewlanguage": "json", "body": "{\n  \"message\": \"Unauthorized\"\n}" }
+          ]
+        },
+        {
+          "name": "Update Loan",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"returned_at\": \"2026-05-01\",\n  \"status\": \"returned\"\n}" },
+            "url": "{{api_url}}/loans/:id"
+          },
+          "response": [
+            { "name": "200 OK", "status": "OK", "code": 200, "_postman_previewlanguage": "json", "body": "{\n  \"id\": 1,\n  \"status\": \"returned\",\n  \"returned_at\": \"2026-05-01\"\n}" }
+          ]
+        },
+        {
+          "name": "Delete Loan",
+          "request": { "method": "DELETE", "header": [{ "key": "Accept", "value": "application/json" }], "url": "{{api_url}}/loans/:id" },
+          "response": [
+            { "name": "200 OK", "status": "OK", "code": 200, "_postman_previewlanguage": "json", "body": "{\n  \"message\": \"Loan deleted\"\n}" }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "05 AI Assistant",
+      "description": "## Folder AI Assistant\n`STATUS: PRODUCTION`\n\nEndpoint ini terhubung ke Groq untuk rekomendasi buku, ringkasan teks, dan chat assistant. Endpoint AI membutuhkan session login, kecuali `/groq/test` yang bersifat public.",
+      "item": [
+        {
+          "name": "Groq Test",
+          "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": "{{api_url}}/groq/test" },
+          "response": [
+            { "name": "200 OK", "status": "OK", "code": 200, "_postman_previewlanguage": "json", "body": "{\n  \"success\": true,\n  \"content\": \"Baik, terima kasih.\",\n  \"usage\": {\n    \"total_tokens\": 215,\n    \"completion_time\": 0.15\n  }\n}" }
+          ]
+        },
+        {
+          "name": "Recommend Books",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"query\": \"Buku tentang web service\"\n}" },
+            "url": "{{api_url}}/ai/recommend"
+          },
+          "response": [
+            { "name": "200 OK", "status": "OK", "code": 200, "_postman_previewlanguage": "json", "body": "{\n  \"success\": true,\n  \"content\": \"1. Facere enim. - cocok untuk teknologi\\n2. Ea eligendi ea odit. - relevan untuk pembelajaran\",\n  \"usage\": {\n    \"total_tokens\": 340,\n    \"completion_time\": 0.21\n  }\n}" },
+            { "name": "401 Unauthorized", "status": "Unauthorized", "code": 401, "_postman_previewlanguage": "json", "body": "{\n  \"message\": \"Unauthenticated\"\n}" }
+          ]
+        },
+        {
+          "name": "Summarize Text",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"text\": \"Laravel adalah framework PHP yang memudahkan pengembangan aplikasi web modern...\"\n}" },
+            "url": "{{api_url}}/ai/summarize"
+          },
+          "response": [
+            { "name": "200 OK", "status": "OK", "code": 200, "_postman_previewlanguage": "json", "body": "{\n  \"success\": true,\n  \"content\": \"Laravel adalah framework PHP untuk membangun aplikasi web modern dengan sintaks yang ringkas dan fitur lengkap.\",\n  \"usage\": {\n    \"total_tokens\": 280,\n    \"completion_time\": 0.19\n  }\n}" }
+          ]
+        },
+        {
+          "name": "Chat Assistant",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"message\": \"Rekomendasikan buku untuk belajar API\"\n}" },
+            "url": "{{api_url}}/ai/chat"
+          },
+          "response": [
+            { "name": "200 OK", "status": "OK", "code": 200, "_postman_previewlanguage": "json", "body": "{\n  \"success\": true,\n  \"content\": \"Coba mulai dari buku yang membahas REST API, HTTP, dan Laravel.\",\n  \"usage\": {\n    \"total_tokens\": 300,\n    \"completion_time\": 0.2\n  }\n}" }
+          ]
+        }
+      ]
+    }
+  ],
+  "auth": { "type": "noauth" }
+}

@@ -24,14 +24,14 @@ Route::get('/groq/test', function () {
 Route::get('books', [BookController::class, 'index']);
 Route::get('books/{id}', [BookController::class, 'show']);
 Route::get('books/recommend', [BookController::class, 'recommend']);
-Route::middleware(['auth:sanctum', EnsureUserRole::class . ':admin'])->group(function () {
+Route::middleware(['auth:web', EnsureUserRole::class . ':admin'])->group(function () {
     Route::post('books', [BookController::class, 'store']);
     Route::put('books/{id}', [BookController::class, 'update']);
     Route::delete('books/{id}', [BookController::class, 'destroy']);
 });
 
-// Loans (peminjaman) - require auth for loan actions
-Route::middleware('auth:sanctum')->group(function () {
+// Loans (peminjaman) - require session auth for loan actions
+Route::middleware('auth:web')->group(function () {
     Route::get('loans', [LoanController::class, 'index']);
     Route::post('loans', [LoanController::class, 'store']);
     Route::get('loans/{id}', [LoanController::class, 'show']);
@@ -39,8 +39,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('loans/{id}', [LoanController::class, 'destroy']);
 });
 
-// AI endpoints (require auth)
-Route::middleware('auth:sanctum')->group(function () {
+// AI endpoints (require session auth)
+Route::middleware('auth:web')->group(function () {
     Route::post('ai/recommend', [AiController::class, 'recommend']);
     Route::post('ai/summarize', [AiController::class, 'summarize']);
     Route::post('ai/chat', [AiController::class, 'chat']);

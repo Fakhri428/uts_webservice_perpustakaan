@@ -22,6 +22,9 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // seed admin and regular user
-        $this->call([UserRoleSeeder::class]);
+        $this->call([
+            UserRoleSeeder::class,
+            BookSeeder::class,
+        ]);
     }
 }

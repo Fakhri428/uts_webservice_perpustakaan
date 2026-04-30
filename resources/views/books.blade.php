@@ -1,30 +1,40 @@
-<!doctype html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Books</title>
-    <style>body{font-family:Arial,Helvetica,sans-serif;margin:20px;}table{border-collapse:collapse;width:100%}td,th{border:1px solid #ddd;padding:8px}</style>
-</head>
-<body>
-    <h1>Books</h1>
-    <p><a href="/dashboard">Back</a></p>
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">Books</h2>
+    </x-slot>
 
-    <h2>Add Book</h2>
-    <form id="book-form">
-        <input name="title" placeholder="Title" required>
-        <input name="author" placeholder="Author">
-        <input name="category" placeholder="Category">
-        <input name="stock" type="number" placeholder="Stock" value="1">
-        <button type="submit">Create</button>
-    </form>
+    <div class="py-6">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white shadow-sm sm:rounded-lg p-6">
+                <div class="mb-4">
+                    <a href="/dashboard" class="text-sm text-blue-600">Back</a>
+                </div>
 
-    <h2>Catalog</h2>
-    <table id="books-table">
-        <thead><tr><th>ID</th><th>Title</th><th>Author</th><th>Category</th><th>Stock</th><th>Actions</th></tr></thead>
-        <tbody></tbody>
-    </table>
+                <div class="mb-6">
+                    <h3 class="text-lg font-medium">Add Book</h3>
+                    <form id="book-form" class="flex gap-2 mt-2">
+                        <input name="title" placeholder="Title" required class="border rounded px-2 py-1 flex-1">
+                        <input name="author" placeholder="Author" class="border rounded px-2 py-1">
+                        <input name="category" placeholder="Category" class="border rounded px-2 py-1">
+                        <input name="stock" type="number" placeholder="Stock" value="1" class="w-20 border rounded px-2 py-1">
+                        <button type="submit" class="bg-blue-600 text-white rounded px-3">Create</button>
+                    </form>
+                </div>
 
+                <div>
+                    <h3 class="text-lg font-medium mb-2">Catalog</h3>
+                    <div class="overflow-x-auto">
+                        <table id="books-table" class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50"><tr><th class="px-4 py-2">ID</th><th class="px-4 py-2">Title</th><th class="px-4 py-2">Author</th><th class="px-4 py-2">Category</th><th class="px-4 py-2">Stock</th><th class="px-4 py-2">Actions</th></tr></thead>
+                            <tbody class="bg-white divide-y divide-gray-200"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @push('scripts')
     <script>
     async function fetchBooks(){
         const res = await fetch('/api/books');
@@ -33,7 +43,7 @@
         tbody.innerHTML = '';
         (data.data || data).forEach(b=>{
             const tr = document.createElement('tr');
-            tr.innerHTML = `<td>${b.id}</td><td>${b.title}</td><td>${b.author||''}</td><td>${b.category||''}</td><td>${b.stock||0}</td><td><button data-id="${b.id}" class="del">Delete</button></td>`;
+            tr.innerHTML = `<td class="px-4 py-2">${b.id}</td><td class="px-4 py-2">${b.title}</td><td class="px-4 py-2">${b.author||''}</td><td class="px-4 py-2">${b.category||''}</td><td class="px-4 py-2">${b.stock||0}</td><td class="px-4 py-2"><button data-id="${b.id}" class="del bg-red-500 text-white px-2 rounded">Delete</button></td>`;
             tbody.appendChild(tr);
         });
     }
@@ -57,5 +67,5 @@
 
     fetchBooks();
     </script>
-</body>
-</html>
+    @endpush
+</x-app-layout>

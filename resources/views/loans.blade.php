@@ -1,29 +1,39 @@
-<!doctype html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Loans</title>
-    <style>body{font-family:Arial,Helvetica,sans-serif;margin:20px;}table{border-collapse:collapse;width:100%}td,th{border:1px solid #ddd;padding:8px}</style>
-</head>
-<body>
-    <h1>Loans</h1>
-    <p><a href="/dashboard">Back</a></p>
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">Loans</h2>
+    </x-slot>
 
-    <h2>Create Loan</h2>
-    <form id="loan-form">
-        <input name="book_id" placeholder="Book ID" required>
-        <input name="user_id" placeholder="User ID (optional)">
-        <input name="due_at" type="date" placeholder="Due date">
-        <button type="submit">Borrow</button>
-    </form>
+    <div class="py-6">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white shadow-sm sm:rounded-lg p-6">
+                <div class="mb-4">
+                    <a href="/dashboard" class="text-sm text-blue-600">Back</a>
+                </div>
 
-    <h2>Active Loans</h2>
-    <table id="loans-table">
-        <thead><tr><th>ID</th><th>Book</th><th>User</th><th>Borrowed At</th><th>Due At</th><th>Actions</th></tr></thead>
-        <tbody></tbody>
-    </table>
+                <div class="mb-6">
+                    <h3 class="text-lg font-medium">Create Loan</h3>
+                    <form id="loan-form" class="flex gap-2 mt-2">
+                        <input name="book_id" placeholder="Book ID" required class="border rounded px-2 py-1 w-32">
+                        <input name="user_id" placeholder="User ID (optional)" class="border rounded px-2 py-1">
+                        <input name="due_at" type="date" placeholder="Due date" class="border rounded px-2 py-1">
+                        <button type="submit" class="bg-blue-600 text-white rounded px-3">Borrow</button>
+                    </form>
+                </div>
 
+                <div>
+                    <h3 class="text-lg font-medium mb-2">Active Loans</h3>
+                    <div class="overflow-x-auto">
+                        <table id="loans-table" class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50"><tr><th class="px-4 py-2">ID</th><th class="px-4 py-2">Book</th><th class="px-4 py-2">User</th><th class="px-4 py-2">Borrowed At</th><th class="px-4 py-2">Due At</th><th class="px-4 py-2">Actions</th></tr></thead>
+                            <tbody class="bg-white divide-y divide-gray-200"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @push('scripts')
     <script>
     async function fetchLoans(){
         const res = await fetch('/api/loans');
@@ -32,7 +42,7 @@
         tbody.innerHTML = '';
         (data.data || data).forEach(l=>{
             const tr = document.createElement('tr');
-            tr.innerHTML = `<td>${l.id}</td><td>${l.book?l.book.title:'-'}</td><td>${l.user?l.user.name:'-'}</td><td>${l.borrowed_at||''}</td><td>${l.due_at||''}</td><td><button data-id="${l.id}" class="ret">Mark Returned</button></td>`;
+            tr.innerHTML = `<td class="px-4 py-2">${l.id}</td><td class="px-4 py-2">${l.book?l.book.title:'-'}</td><td class="px-4 py-2">${l.user?l.user.name:'-'}</td><td class="px-4 py-2">${l.borrowed_at||''}</td><td class="px-4 py-2">${l.due_at||''}</td><td class="px-4 py-2"><button data-id="${l.id}" class="ret bg-green-600 text-white px-2 rounded">Mark Returned</button></td>`;
             tbody.appendChild(tr);
         });
     }
@@ -56,5 +66,5 @@
 
     fetchLoans();
     </script>
-</body>
-</html>
+    @endpush
+</x-app-layout>

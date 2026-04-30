@@ -8,8 +8,9 @@
     <h1>Admin Dashboard</h1>
     <p>Welcome, {{ auth()->user()->name }}. This is the admin dashboard.</p>
     <ul>
-        <li><a href="/books">Manage Books (API)</a></li>
-        <li><a href="/loans">Manage Loans (API)</a></li>
+        <li><a href="/app/books">Manage Books</a></li>
+        <li><a href="/app/loans">Manage Loans</a></li>
+        <li><a href="/app/ai">AI Tools</a></li>
     </ul>
 </body>
 </html>

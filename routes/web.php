@@ -31,4 +31,9 @@ Route::middleware([
     Route::get('/user/dashboard', [UserDashboardController::class, 'index'])
         ->middleware(EnsureUserRole::class . ':user')
         ->name('user.dashboard');
+    
+    // Simple web UI pages for the app
+    Route::get('/app/books', function () { return view('books'); })->name('app.books');
+    Route::get('/app/loans', function () { return view('loans'); })->name('app.loans');
+    Route::get('/app/ai', function () { return view('ai'); })->name('app.ai');
 });

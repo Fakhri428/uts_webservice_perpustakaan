@@ -40,7 +40,7 @@
         .tab-chip { border: 1px solid #e2e8f0; background: #fff; color: #475569; font-size: 12px; font-weight: 700; border-radius: 999px; padding: 8px 12px; cursor: pointer; transition: 0.15s ease; }
         .tab-chip:hover, .tab-chip.active { border-color: #bfdbfe; background: #eff6ff; color: #1d4ed8; }
         .book-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
-        .book-card { border: 1px solid #e5e7eb; background: #fff; border-radius: 18px; overflow: hidden; box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04); transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease; }
+        .book-card { border: 1px solid #e5e7eb; background: #fff; border-radius: 18px; overflow: hidden; box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04); transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease; cursor: pointer; }
         .book-card:hover { transform: translateY(-4px); border-color: #bfdbfe; box-shadow: 0 18px 32px rgba(15, 23, 42, 0.10); }
         .book-cover { position: relative; height: 230px; overflow: hidden; background: linear-gradient(135deg, #0f172a, #1d4ed8); }
         .book-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -59,10 +59,30 @@
         .pagination-btns { display: flex; gap: 6px; flex-wrap: wrap; }
         .page-btn { min-width: 34px; height: 34px; padding: 0 11px; border-radius: 10px; border: 1px solid #e2e8f0; background: #fff; color: #0f172a; font-size: 13px; font-weight: 700; cursor: pointer; }
         .page-btn.active { background: #1d4ed8; border-color: #1d4ed8; color: #fff; }
+        .book-modal { display: none; position: fixed; inset: 0; z-index: 60; align-items: center; justify-content: center; padding: 18px; background: rgba(15, 23, 42, 0.62); backdrop-filter: blur(6px); }
+        .book-modal.open { display: flex; }
+        .book-modal-box { width: min(760px, 100%); background: #fff; border-radius: 24px; overflow: hidden; box-shadow: 0 24px 80px rgba(0, 0, 0, 0.28); }
+        .book-modal-cover { height: 220px; position: relative; background: linear-gradient(135deg, #0f172a, #1d4ed8); }
+        .book-modal-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .book-modal-body { padding: 22px; }
+        .book-modal-grid { display: grid; grid-template-columns: 1.3fr 0.7fr; gap: 18px; }
+        .book-modal-title { font-size: 28px; font-weight: 800; line-height: 1.1; color: #0f172a; margin-bottom: 8px; }
+        .book-modal-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+        .book-pill { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 6px 10px; background: #eff6ff; color: #1d4ed8; font-size: 12px; font-weight: 700; }
+        .book-desc { color: #334155; line-height: 1.75; font-size: 14px; white-space: pre-line; }
+        .book-side { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 18px; padding: 16px; }
+        .book-side-item { margin-bottom: 12px; }
+        .book-side-item .label { font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: #94a3b8; font-weight: 800; margin-bottom: 4px; }
+        .book-side-item .value { font-size: 14px; font-weight: 700; color: #0f172a; }
+        .book-modal-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+        .book-modal-actions a, .book-modal-actions button { border: 0; border-radius: 12px; padding: 10px 14px; font-size: 14px; font-weight: 700; cursor: pointer; text-decoration: none; }
+        .btn-circ { background: #2563eb; color: #fff; }
+        .btn-close { background: #e2e8f0; color: #0f172a; }
         @media (max-width: 1200px) { .book-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
         @media (max-width: 960px) { .catalog-shell { grid-template-columns: 1fr; } .catalog-sidebar { position: static; } }
         @media (max-width: 700px) { .catalog-panel { padding: 18px; } .catalog-heading h1 { font-size: 24px; } .book-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .search-wrap input { width: 100%; } }
         @media (max-width: 440px) { .book-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 760px) { .book-modal-grid { grid-template-columns: 1fr; } .book-modal-title { font-size: 22px; } }
     </style>
 
     <div class="py-6">
@@ -136,6 +156,47 @@
         </div>
     </div>
 
+    <div class="book-modal" id="book-modal" onclick="if(event.target === this) closeBookModal()">
+        <div class="book-modal-box">
+            <div class="book-modal-cover" id="book-modal-cover"></div>
+            <div class="book-modal-body">
+                <div class="book-modal-grid">
+                    <div>
+                        <div class="book-modal-meta" id="book-modal-meta"></div>
+                        <div class="book-modal-title" id="book-modal-title"></div>
+                        <div class="book-desc" id="book-modal-desc"></div>
+                        <div class="book-modal-actions">
+                            <a href="{{ route('user.loans') }}" class="btn-circ">Go to Circulation</a>
+                            <button type="button" class="btn-close" onclick="closeBookModal()">Close</button>
+                        </div>
+                    </div>
+                    <div class="book-side">
+                        <div class="book-side-item">
+                            <div class="label">Author</div>
+                            <div class="value" id="book-modal-author"></div>
+                        </div>
+                        <div class="book-side-item">
+                            <div class="label">Category</div>
+                            <div class="value" id="book-modal-category"></div>
+                        </div>
+                        <div class="book-side-item">
+                            <div class="label">ISBN</div>
+                            <div class="value" id="book-modal-isbn"></div>
+                        </div>
+                        <div class="book-side-item">
+                            <div class="label">Year</div>
+                            <div class="value" id="book-modal-year"></div>
+                        </div>
+                        <div class="book-side-item" style="margin-bottom:0;">
+                            <div class="label">Stock</div>
+                            <div class="value" id="book-modal-stock"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     @push('scripts')
     <script>
         const INITIAL_BOOKS = @json($books);
@@ -173,6 +234,36 @@
             ];
             return `<div class="cover-fallback" style="background:${palette[idx % palette.length]}"><span>${EMOJIS[idx % EMOJIS.length]}</span></div>`;
         }
+
+        function openBookModal(book, idx) {
+            const modal = document.getElementById('book-modal');
+            const cover = document.getElementById('book-modal-cover');
+            const meta = document.getElementById('book-modal-meta');
+
+            cover.innerHTML = book.image
+                ? `<img src="/storage/${escapeHtml(book.image)}" alt="${escapeHtml(book.title)}">`
+                : `<div class="cover-fallback" style="height:220px;background:linear-gradient(135deg, #0f172a, #1d4ed8 65%, #60a5fa)"><span>${EMOJIS[idx % EMOJIS.length]}</span></div>`;
+
+            document.getElementById('book-modal-title').textContent = book.title || 'Untitled';
+            document.getElementById('book-modal-desc').textContent = book.description || 'No description available.';
+            document.getElementById('book-modal-author').textContent = book.author || '-';
+            document.getElementById('book-modal-category').textContent = book.category || 'Uncategorized';
+            document.getElementById('book-modal-isbn').textContent = book.isbn || '-';
+            document.getElementById('book-modal-year').textContent = book.published_year || '-';
+            document.getElementById('book-modal-stock').textContent = Number(book.stock || 0);
+            meta.innerHTML = `
+                <span class="book-pill">${getStatus(book)}</span>
+                <span class="book-pill">${escapeHtml(book.category || 'Uncategorized')}</span>
+            `;
+
+            modal.classList.add('open');
+        }
+
+        function closeBookModal() {
+            document.getElementById('book-modal').classList.remove('open');
+        }
+
+        window.closeBookModal = closeBookModal;
 
         function updateHeading(categoryName) {
             const title = document.getElementById('catalog-title');
@@ -280,7 +371,7 @@
                 const status = getStatus(book);
                 const badgeClass = status === 'AVAILABLE' ? '' : 'loan';
                 return `
-                    <article class="book-card">
+                    <article class="book-card" data-index="${globalIndex}">
                         <div class="book-cover">
                             <div class="book-badge ${badgeClass}">${status}</div>
                             ${coverMarkup(book, globalIndex)}
@@ -301,6 +392,14 @@
             document.getElementById('page-info').textContent = total
                 ? `Showing ${start + 1} to ${Math.min(start + perPage, total)} of ${total.toLocaleString()} books`
                 : 'Showing 0 books';
+
+            document.querySelectorAll('.book-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    const index = Number(card.dataset.index);
+                    const book = filteredBooks[index];
+                    if (book) openBookModal(book, index);
+                });
+            });
 
             const btns = [];
             if (totalPages > 1) {
@@ -341,6 +440,10 @@
             document.getElementById('filter-onloan').checked = false;
             applyFilters();
         }));
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeBookModal();
+        });
 
         renderCategories();
         applyFilters();

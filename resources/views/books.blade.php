@@ -10,6 +10,7 @@
                     <a href="/dashboard" class="text-sm text-blue-600">Back</a>
                 </div>
 
+                @if(auth()->check() && auth()->user()->role === 'admin')
                 <div class="mb-6">
                     <h3 class="text-lg font-medium">Add Book</h3>
                     <form id="book-form" class="flex gap-2 mt-2">
@@ -20,6 +21,11 @@
                         <button type="submit" class="bg-blue-600 text-white rounded px-3">Create</button>
                     </form>
                 </div>
+                @else
+                <div class="mb-6">
+                    <p class="text-sm text-gray-500">Only administrators can add books. If you need a new title, request an admin.</p>
+                </div>
+                @endif
 
                 <div>
                     <h3 class="text-lg font-medium mb-2">Catalog</h3>
@@ -41,9 +47,17 @@
         const data = await res.json();
         const tbody = document.querySelector('#books-table tbody');
         tbody.innerHTML = '';
+        const role = "{{ auth()->check() ? auth()->user()->role : 'guest' }}";
         (data.data || data).forEach(b=>{
             const tr = document.createElement('tr');
-            tr.innerHTML = `<td class="px-4 py-2">${b.id}</td><td class="px-4 py-2">${b.title}</td><td class="px-4 py-2">${b.author||''}</td><td class="px-4 py-2">${b.category||''}</td><td class="px-4 py-2">${b.stock||0}</td><td class="px-4 py-2"><button data-id="${b.id}" class="del bg-red-500 text-white px-2 rounded">Delete</button></td>`;
+            let actions = '';
+            if (role === 'admin') {
+                actions = `<button data-id="${b.id}" class="del bg-red-500 text-white px-2 rounded">Delete</button> <button data-id="${b.id}" class="inc bg-green-500 text-white px-2 rounded">+1</button>`;
+            } else {
+                actions = '<span class="text-sm text-gray-500">-</span>';
+            }
+
+            tr.innerHTML = `<td class="px-4 py-2">${b.id}</td><td class="px-4 py-2">${b.title}</td><td class="px-4 py-2">${b.author||''}</td><td class="px-4 py-2">${b.category||''}</td><td class="px-4 py-2" data-stock>${b.stock||0}</td><td class="px-4 py-2">${actions}</td>`;
             tbody.appendChild(tr);
         });
     }
@@ -61,6 +75,16 @@
         if(e.target.matches('.del')){
             const id = e.target.dataset.id;
             await fetch('/api/books/'+id, { method: 'DELETE' });
+            fetchBooks();
+        }
+
+        if(e.target.matches('.inc')){
+            const id = e.target.dataset.id;
+            const row = e.target.closest('tr');
+            const stockCell = row.querySelector('[data-stock]');
+            const current = parseInt(stockCell.textContent || '0');
+            const next = current + 1;
+            await fetch('/api/books/'+id, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ stock: next }) });
             fetchBooks();
         }
     });

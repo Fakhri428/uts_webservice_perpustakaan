@@ -3,21 +3,35 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\EnsureUserRole;
 use App\Models\Loan;
 use App\Models\Book;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 
 class LoanController extends Controller
 {
     public function index()
     {
-        return response()->json(Loan::with('book','user')->paginate(15));
+        $user = Auth::user();
+
+        if ($user && $user->role === 'admin') {
+            return response()->json(Loan::with('book','user')->paginate(15));
+        }
+
+        return response()->json(Loan::with('book','user')->where('user_id', $user->id)->paginate(15));
     }
 
     public function store(Request $request)
     {
         $data = $request->only(['book_id','user_id','borrowed_at','due_at']);
+
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated'], 401);
+        }
 
         $validator = Validator::make($data, [
             'book_id' => 'required|exists:books,id',
@@ -36,6 +50,9 @@ class LoanController extends Controller
             return response()->json(['message' => 'Book out of stock'], 400);
         }
 
+        // default to authenticated user
+        $data['user_id'] = $data['user_id'] ?? $user->id;
+
         $loan = Loan::create(array_merge($data, ['borrowed_at' => $data['borrowed_at'] ?? now(), 'status' => 'borrowed']));
 
         // decrement stock
@@ -47,12 +64,23 @@ class LoanController extends Controller
     public function show($id)
     {
         $loan = Loan::with('book','user')->findOrFail($id);
+
+        $user = Auth::user();
+        if ($user->role !== 'admin' && $loan->user_id !== $user->id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
         return response()->json($loan);
     }
 
     public function update(Request $request, $id)
     {
         $loan = Loan::findOrFail($id);
+
+        $user = Auth::user();
+        if ($user->role !== 'admin' && $loan->user_id !== $user->id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
 
         $data = $request->only(['returned_at','status','due_at']);
 

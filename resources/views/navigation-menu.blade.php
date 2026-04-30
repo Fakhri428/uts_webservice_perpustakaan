@@ -15,6 +15,15 @@
                     <x-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+                    <x-nav-link href="{{ route('app.books') }}" :active="request()->routeIs('app.books')">
+                        {{ __('Books') }}
+                    </x-nav-link>
+                    <x-nav-link href="{{ route('app.loans') }}" :active="request()->routeIs('app.loans')">
+                        {{ __('Loans') }}
+                    </x-nav-link>
+                    <x-nav-link href="{{ route('app.ai') }}" :active="request()->routeIs('app.ai')">
+                        {{ __('AI') }}
+                    </x-nav-link>
                 </div>
             </div>
 
@@ -101,6 +110,13 @@
                             <x-dropdown-link href="{{ route('profile.show') }}">
                                 {{ __('Profile') }}
                             </x-dropdown-link>
+
+                            @if(Auth::user() && Auth::user()->role === 'admin')
+                                <div class="border-t border-gray-200"></div>
+                                <div class="block px-4 py-2 text-xs text-gray-400">Admin</div>
+                                <x-dropdown-link href="{{ route('app.books') }}">Manage Books</x-dropdown-link>
+                                <x-dropdown-link href="{{ route('app.loans') }}">Monitor Loans</x-dropdown-link>
+                            @endif
 
                             @if (Laravel\Jetstream\Jetstream::hasApiFeatures())
                                 <x-dropdown-link href="{{ route('api-tokens.index') }}">

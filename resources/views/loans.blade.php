@@ -10,6 +10,8 @@
                     <a href="/dashboard" class="text-sm text-blue-600">Back</a>
                 </div>
 
+                @php $role = auth()->check() ? auth()->user()->role : 'guest'; @endphp
+                @if($role === 'user')
                 <div class="mb-6">
                     <h3 class="text-lg font-medium">Create Loan</h3>
                     <form id="loan-form" class="flex gap-2 mt-2">
@@ -19,6 +21,11 @@
                         <button type="submit" class="bg-blue-600 text-white rounded px-3">Borrow</button>
                     </form>
                 </div>
+                @else
+                <div class="mb-6">
+                    <p class="text-sm text-gray-500">Loan creation is available to regular users. Admins can monitor and mark returns.</p>
+                </div>
+                @endif
 
                 <div>
                     <h3 class="text-lg font-medium mb-2">Active Loans</h3>
@@ -40,9 +47,19 @@
         const data = await res.json();
         const tbody = document.querySelector('#loans-table tbody');
         tbody.innerHTML = '';
+        const role = "{{ auth()->check() ? auth()->user()->role : 'guest' }}";
         (data.data || data).forEach(l=>{
             const tr = document.createElement('tr');
-            tr.innerHTML = `<td class="px-4 py-2">${l.id}</td><td class="px-4 py-2">${l.book?l.book.title:'-'}</td><td class="px-4 py-2">${l.user?l.user.name:'-'}</td><td class="px-4 py-2">${l.borrowed_at||''}</td><td class="px-4 py-2">${l.due_at||''}</td><td class="px-4 py-2"><button data-id="${l.id}" class="ret bg-green-600 text-white px-2 rounded">Mark Returned</button></td>`;
+            let actions = '';
+            if (role === 'admin') {
+                actions = `<button data-id="${l.id}" class="ret bg-green-600 text-white px-2 rounded">Mark Returned</button>`;
+            } else if (role === 'user' && l.user && l.user.email === "{{ auth()->check() ? auth()->user()->email : '' }}") {
+                actions = `<button data-id="${l.id}" class="ret bg-green-600 text-white px-2 rounded">Return</button>`;
+            } else {
+                actions = '<span class="text-sm text-gray-500">-</span>';
+            }
+
+            tr.innerHTML = `<td class="px-4 py-2">${l.id}</td><td class="px-4 py-2">${l.book?l.book.title:'-'}</td><td class="px-4 py-2">${l.user?l.user.name:'-'}</td><td class="px-4 py-2">${l.borrowed_at||''}</td><td class="px-4 py-2">${l.due_at||''}</td><td class="px-4 py-2">${actions}</td>`;
             tbody.appendChild(tr);
         });
     }

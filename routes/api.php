@@ -19,14 +19,18 @@ Route::get('/groq/test', function () {
     return response()->json($result);
 });
 
-// Book CRUD
+// Book CRUD - index/show/recommend public, mutating actions require auth+admin (handled in controller)
 Route::get('books/recommend', [BookController::class, 'recommend']);
 Route::apiResource('books', BookController::class);
 
-// Loans (peminjaman)
-Route::apiResource('loans', LoanController::class);
+// Loans (peminjaman) - require auth for loan actions
+Route::middleware('auth:sanctum')->group(function () {
+    Route::apiResource('loans', LoanController::class);
+});
 
-// AI endpoints
-Route::post('ai/recommend', [AiController::class, 'recommend']);
-Route::post('ai/summarize', [AiController::class, 'summarize']);
-Route::post('ai/chat', [AiController::class, 'chat']);
+// AI endpoints (require auth)
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('ai/recommend', [AiController::class, 'recommend']);
+    Route::post('ai/summarize', [AiController::class, 'summarize']);
+    Route::post('ai/chat', [AiController::class, 'chat']);
+});

@@ -3,10 +3,13 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\EnsureUserRole;
 use App\Models\Book;
 use App\Services\GroqService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+
+use Illuminate\Support\Facades\Auth;
 
 class BookController extends Controller
 {
@@ -15,6 +18,12 @@ class BookController extends Controller
     public function __construct(GroqService $groq)
     {
         $this->groq = $groq;
+
+        // require auth for mutating actions, allow public index/show/recommend
+        $this->middleware('auth:sanctum')->except(['index','show','recommend']);
+
+        // only admin can create/update/delete books
+        $this->middleware(EnsureUserRole::class . ':admin')->only(['store','update','destroy']);
     }
 
     public function index(Request $request)
